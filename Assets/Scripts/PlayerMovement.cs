@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,44 +21,64 @@ public class PlayerMovement : MonoBehaviour
   private bool rightKeyPressed = false;
   private bool leftKeyPressed = false;
 
+  private GameManager gameManager;
+
   void Start() {
-    //
+    gameManager = FindObjectOfType<GameManager>();
   }
 
   void Update() {
     if (Input.GetKeyDown("d")) {
       rightKeyPressed = true;
-    }
-    if (Input.GetKeyDown("a")) {
-      leftKeyPressed = true;
-    }
-
-    if (Input.GetKeyUp("d")) {
+    } else if (Input.GetKeyUp("d")) {
       multiplier = 1f;
       rightKeyPressed = false;
     }
-    if (Input.GetKeyUp("a")) {
+
+    if (Input.GetKeyDown("a")) {
+      leftKeyPressed = true;
+    } else if (Input.GetKeyUp("a")) {
       multiplier = 1f;
       leftKeyPressed = false;
+    }
+
+    if (Input.GetKeyDown("w")) {
+      playerRigidBody.transform.position = new Vector3(0, 0, 710);
     }
   }
 
   float multiplier = 1f;
 
   void FixedUpdate() {
-    playerRigidBody.AddForce(0, 0, forwardMovementForce * Time.deltaTime);
 
+    if (endGameIfFallenOff()) {
+      return;
+    }
+
+    playerRigidBody.AddForce(0, 0, forwardMovementForce * Time.deltaTime);
     multiplier += multiplier * Time.deltaTime;
 
     if (rightKeyPressed) {
       playerRigidBody.AddForce(sidewaysMovementForce * Time.deltaTime, 0, 0, ForceMode.VelocityChange);
       angleIncrement += ANGLE_INCREMENT * Time.deltaTime;
       playerRigidBody.MoveRotation(Quaternion.AngleAxis(angleIncrement, Y_AXIS));
-    }
-    else if (leftKeyPressed) {
+    } else if (leftKeyPressed) {
       playerRigidBody.AddForce(-sidewaysMovementForce * Time.deltaTime, 0, 0, ForceMode.VelocityChange);
       angleIncrement -= ANGLE_INCREMENT * Time.deltaTime;
       playerRigidBody.MoveRotation(Quaternion.AngleAxis(angleIncrement, Y_AXIS));
     }
+  }
+
+  private bool endGameIfFallenOff() {
+    if (playerRigidBody.position.y < GameManager.FALL_OFF_THRESHOLD) {
+      gameManager.GameOver();
+      return true;
+    }
+    return false;
+  }
+
+  public void stop() {
+    playerRigidBody.velocity = new Vector3(0, 0, 0);
+    playerRigidBody.
   }
 }

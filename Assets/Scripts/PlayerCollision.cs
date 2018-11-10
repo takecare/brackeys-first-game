@@ -11,6 +11,12 @@ public class PlayerCollision : MonoBehaviour {
     if (collision.collider.tag == "Obstacle") {
       Debug.Log("Collision with obstacle");
       playerMovement.enabled = false;
+      endGame();
     }
+  }
+
+  void endGame() {
+    GameManager gameManager = FindObjectOfType<GameManager>();
+    gameManager.GameOver();
   }
 }
