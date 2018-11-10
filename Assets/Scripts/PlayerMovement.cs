@@ -11,6 +11,7 @@ public class PlayerMovement : MonoBehaviour
 
   public float forwardMovementForce = 4000f;
   public float sidewaysMovementForce = 100f;
+  private ForceMode sidewaysForceMode = ForceMode.VelocityChange;
   public Rigidbody playerRigidBody;
 
   private static Vector3 Y_AXIS = new Vector3(0f, 1f, 0f);
@@ -28,6 +29,25 @@ public class PlayerMovement : MonoBehaviour
   }
 
   void Update() {
+
+    if (Input.GetKeyUp("v")) {
+      switch (sidewaysForceMode) {
+        case ForceMode.Acceleration:
+          sidewaysForceMode = ForceMode.Force;
+          break;
+        case ForceMode.Force:
+          sidewaysForceMode = ForceMode.Impulse;
+          break;
+        case ForceMode.Impulse:
+          sidewaysForceMode = ForceMode.VelocityChange;
+          break;
+        case ForceMode.VelocityChange:
+          sidewaysForceMode = ForceMode.Acceleration;
+          break;
+      }
+      Debug.Log("Force mode = " + sidewaysForceMode);
+    }
+
     if (Input.GetKeyDown("d")) {
       rightKeyPressed = true;
     } else if (Input.GetKeyUp("d")) {
@@ -47,10 +67,11 @@ public class PlayerMovement : MonoBehaviour
     }
   }
 
+
   float multiplier = 1f;
 
-  void FixedUpdate() {
 
+  void FixedUpdate() {
     if (endGameIfFallenOff()) {
       return;
     }
@@ -59,11 +80,11 @@ public class PlayerMovement : MonoBehaviour
     multiplier += multiplier * Time.deltaTime;
 
     if (rightKeyPressed) {
-      playerRigidBody.AddForce(sidewaysMovementForce * Time.deltaTime, 0, 0, ForceMode.VelocityChange);
+      playerRigidBody.AddForce(sidewaysMovementForce * Time.deltaTime, 0, 0, sidewaysForceMode);
       angleIncrement += ANGLE_INCREMENT * Time.deltaTime;
       playerRigidBody.MoveRotation(Quaternion.AngleAxis(angleIncrement, Y_AXIS));
     } else if (leftKeyPressed) {
-      playerRigidBody.AddForce(-sidewaysMovementForce * Time.deltaTime, 0, 0, ForceMode.VelocityChange);
+      playerRigidBody.AddForce(-sidewaysMovementForce * Time.deltaTime, 0, 0, sidewaysForceMode);
       angleIncrement -= ANGLE_INCREMENT * Time.deltaTime;
       playerRigidBody.MoveRotation(Quaternion.AngleAxis(angleIncrement, Y_AXIS));
     }
@@ -79,6 +100,6 @@ public class PlayerMovement : MonoBehaviour
 
   public void stop() {
     playerRigidBody.velocity = new Vector3(0, 0, 0);
-    playerRigidBody.
+    // playerRigidBody.
   }
 }
