@@ -11,7 +11,7 @@ public class PlayerMovement : MonoBehaviour
 
   public float forwardMovementForce = 4000f;
   public float sidewaysMovementForce = 100f;
-  private ForceMode sidewaysForceMode = ForceMode.VelocityChange;
+
   public Rigidbody playerRigidBody;
 
   private static Vector3 Y_AXIS = new Vector3(0f, 1f, 0f);
@@ -23,42 +23,34 @@ public class PlayerMovement : MonoBehaviour
   private bool leftKeyPressed = false;
 
   private GameManager gameManager;
+  private GameObject ground;
+
+  private float playerHalfWidth;
+  private float groundPosX;
+  private float groundHalfWidth;
 
   void Start() {
+    ground = GameObject.FindWithTag("Ground");
     gameManager = FindObjectOfType<GameManager>();
+
+    playerHalfWidth = this.transform.GetComponent<Collider>().bounds.size.x / 2;
+
+    Collider groundCollider = ground.GetComponent<Collider>();
+    groundPosX = ground.transform.position.x;
+    groundHalfWidth = groundCollider.bounds.size.x / 2f;
+    // Debug.Log(playerHalfWidth);
   }
 
   void Update() {
-
-    if (Input.GetKeyUp("v")) {
-      switch (sidewaysForceMode) {
-        case ForceMode.Acceleration:
-          sidewaysForceMode = ForceMode.Force;
-          break;
-        case ForceMode.Force:
-          sidewaysForceMode = ForceMode.Impulse;
-          break;
-        case ForceMode.Impulse:
-          sidewaysForceMode = ForceMode.VelocityChange;
-          break;
-        case ForceMode.VelocityChange:
-          sidewaysForceMode = ForceMode.Acceleration;
-          break;
-      }
-      Debug.Log("Force mode = " + sidewaysForceMode);
-    }
-
     if (Input.GetKeyDown("d")) {
       rightKeyPressed = true;
     } else if (Input.GetKeyUp("d")) {
-      multiplier = 1f;
       rightKeyPressed = false;
     }
 
     if (Input.GetKeyDown("a")) {
       leftKeyPressed = true;
     } else if (Input.GetKeyUp("a")) {
-      multiplier = 1f;
       leftKeyPressed = false;
     }
 
@@ -67,35 +59,41 @@ public class PlayerMovement : MonoBehaviour
     }
   }
 
-
-  float multiplier = 1f;
-
-
   void FixedUpdate() {
-    if (endGameIfFallenOff()) {
+    endGameIfFallenOff();
+
+    if (gameManager.isGameOver()) {
       return;
     }
 
     playerRigidBody.AddForce(0, 0, forwardMovementForce * Time.deltaTime);
-    multiplier += multiplier * Time.deltaTime;
 
     if (rightKeyPressed) {
-      playerRigidBody.AddForce(sidewaysMovementForce * Time.deltaTime, 0, 0, sidewaysForceMode);
+      playerRigidBody.AddForce(sidewaysMovementForce * Time.deltaTime, 0, 0, ForceMode.VelocityChange);
       angleIncrement += ANGLE_INCREMENT * Time.deltaTime;
       playerRigidBody.MoveRotation(Quaternion.AngleAxis(angleIncrement, Y_AXIS));
     } else if (leftKeyPressed) {
-      playerRigidBody.AddForce(-sidewaysMovementForce * Time.deltaTime, 0, 0, sidewaysForceMode);
+      playerRigidBody.AddForce(-sidewaysMovementForce * Time.deltaTime, 0, 0, ForceMode.VelocityChange);
       angleIncrement -= ANGLE_INCREMENT * Time.deltaTime;
       playerRigidBody.MoveRotation(Quaternion.AngleAxis(angleIncrement, Y_AXIS));
     }
   }
 
-  private bool endGameIfFallenOff() {
-    if (playerRigidBody.position.y < GameManager.FALL_OFF_THRESHOLD) {
+  private void endGameIfFallenOff() {
+    // Debug.Log(ground.transform.position.x + " " + playerRigidBody.position.x + " | " + collider.bounds.size.x);
+    if (playerRigidBody.position.y < GameManager.FALL_OFF_THRESHOLD
+    || playerRigidBody.position.x + playerHalfWidth < (groundPosX - groundHalfWidth)
+    || playerRigidBody.position.x - playerHalfWidth > (groundPosX + groundHalfWidth)) {
       gameManager.GameOver();
-      return true;
+      // Debug.Log(playerRigidBody.velocity);
+      playerRigidBody.velocity = new Vector3(
+        playerRigidBody.velocity.x / 2f,
+        playerRigidBody.velocity.y / 2f,
+        playerRigidBody.velocity.z / 2f
+      );
+      // playerRigidBody.angularVelocity
+      // Debug.Log(playerRigidBody.velocity);
     }
-    return false;
   }
 
   public void stop() {

@@ -3,23 +3,27 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
-  public static int FALL_OFF_THRESHOLD = -5;
-  public static float restartDelay = 2f;
+  public static float FALL_OFF_THRESHOLD = -0.5f;
+  public static float RESTART_DELAY_SEC = 6f;//2f;
 
   public GameObject completeLevelUi;
-  private bool isGameOver = false;
+  private bool _isGameOver = false;
+
+  public bool isGameOver() {
+    return _isGameOver;
+  }
 
   public void GameOver() {
-    if (isGameOver) {
+    if (_isGameOver) {
       return;
     }
-    Invoke("Restart", restartDelay);
-    isGameOver = true;
+    Invoke("Restart", RESTART_DELAY_SEC);
+    _isGameOver = true;
     // TODO slow down movement (slowmo effect)
   }
 
 	public void Restart() {
-    // TODO restart UI
+    // TODO restart UI: counter?
     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
   }
 
